@@ -30,29 +30,29 @@ class DataWriter:
 
         self.s_writer = self.context.socket(zmq.PUB)
 
-        s_xsub = self.context.socket(zmq.XSUB)
-        s_xsub.bind(read_proxy_name_xsub)
-        s_xpub = self.context.socket(zmq.XPUB)
-        s_xpub.bind(write_proxy_name_xpub)
-        threading.Thread(
-            target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
-            args=(s_xsub, s_xpub),
-        ).start()
+        # s_xsub = self.context.socket(zmq.XSUB)
+        # s_xsub.bind(read_proxy_name_xsub)
+        # s_xpub = self.context.socket(zmq.XPUB)
+        # s_xpub.bind(write_proxy_name_xpub)
+        # threading.Thread(
+        #     target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
+        #     args=(s_xsub, s_xpub),
+        # ).start()
 
-        # try:
-        #     s_xsub = self.context.socket(zmq.XSUB)
-        #     s_xsub.bind(read_proxy_name_xsub)
-        #     s_xpub = self.context.socket(zmq.XPUB)
-        #     s_xpub.bind(write_proxy_name_xpub)
-        #     threading.Thread(
-        #         target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
-        #         args=(s_xsub, s_xpub),
-        #     ).start()
-        # except zmq.ZMQError as e:
-        #     if e.errno == zmq.EADDRINUSE:
-        #         print("Proxy already running")
-        #     else:
-        #         raise e
+        try:
+            s_xsub = self.context.socket(zmq.XSUB)
+            s_xsub.bind(read_proxy_name_xsub)
+            s_xpub = self.context.socket(zmq.XPUB)
+            s_xpub.bind(write_proxy_name_xpub)
+            threading.Thread(
+                target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
+                args=(s_xsub, s_xpub),
+            ).start()
+        except zmq.ZMQError as e:
+            if e.errno == zmq.EADDRINUSE:
+                print("Proxy already running")
+            else:
+                raise e
 
         self.s_writer.connect(read_proxy_name_xsub)
 

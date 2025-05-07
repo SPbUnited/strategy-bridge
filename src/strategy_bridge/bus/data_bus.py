@@ -8,13 +8,13 @@ from strategy_bridge.bus.record import Record
 import zmq
 import threading
 
-DB_TRANSPORT = "inproc://"
+DB_TRANSPORT = "ipc://"
 DB_READ_SUFFIX = "_read"
 DB_WRITE_SUFFIX = "_write"
 DB_PROXY_SUFFIX = ".proxy"
 
-DB_READ_PREFFIX_XPUB = "ipc:///tmp/xpub_"
-DB_WRITE_PREFFIX_XSUB = "ipc:///tmp/xsub_"
+DB_READ_PREFFIX_XPUB = DB_TRANSPORT + "/tmp/xpub_"
+DB_WRITE_PREFFIX_XSUB = DB_TRANSPORT + "/tmp/xsub_"
 
 
 @attr.s(auto_attribs=True)
