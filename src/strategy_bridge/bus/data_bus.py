@@ -20,9 +20,16 @@ class DataBus:
     sockets: typing.Dict[str, zmq.Socket] = attr.ib(init=False)
 
     def __attrs_post_init__(self):
-        self.data: typing.Dict[str, deque[Record]] = {}
+        # self.data: typing.Dict[str, deque[Record]] = {}
+        self.sockets = {}
 
     def register_topic(self, topic_name: str, max_size: int) -> None:
+        print("Registering topic", topic_name)
+
+        if self.transport + topic_name + self.write_suffix in self.sockets:
+            print("Topic" + topic_name + self.write_suffix + " already registered")
+            return
+
         read_name_sub = self.transport + topic_name + self.read_suffix
         write_name_pub = self.transport + topic_name + self.write_suffix
         read_proxy_name_xsub = (
@@ -32,21 +39,23 @@ class DataBus:
             self.transport + topic_name + self.write_suffix + self.proxy_suffix
         )
 
+        print("Creating sockets")
         self.sockets[read_name_sub] = self.context.socket(zmq.SUB)
         self.sockets[write_name_pub] = self.context.socket(zmq.PUB)
         self.sockets[read_proxy_name_xsub] = self.context.socket(zmq.XSUB)
         self.sockets[write_proxy_name_xpub] = self.context.socket(zmq.XPUB)
 
+        print("Binding sockets")
         self.sockets[read_proxy_name_xsub].bind(write_name_pub)
         self.sockets[write_proxy_name_xpub].bind(read_name_sub)
         self.sockets[read_name_sub].connect(read_name_sub)
         self.sockets[write_name_pub].connect(write_name_pub)
 
+        print("Subscribing to topic")
         self.sockets[read_name_sub].setsockopt_string(zmq.SUBSCRIBE, "")
-        self.sockets[read_proxy_name_xsub].setsockopt_string(zmq.SUBSCRIBE, "")
 
         threading.Thread(
-            target=lambda: zmq.proxy,
+            target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
             args=(
                 self.sockets[read_proxy_name_xsub],
                 self.sockets[write_proxy_name_xpub],
@@ -56,16 +65,16 @@ class DataBus:
 
     def write(self, topic_name: str, record: Record) -> None:
         # self.data[topic_name].append(record)
-        self.data[topic_name + self.write_suffix].send_pyobj(record)
+        self.sockets[self.transport + topic_name + self.write_suffix].send_pyobj(record)
 
     def read_all(self, topic_name) -> typing.List[Record]:
         data = []
         for _ in range(10):
             try:
                 data.append(
-                    self.sockets[topic_name + self.read_suffix].recv_pyobj(
-                        flags=zmq.NOBLOCK
-                    )
+                    self.sockets[
+                        self.transport + topic_name + self.read_suffix
+                    ].recv_pyobj(flags=zmq.NOBLOCK)
                 )
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
@@ -75,6 +84,8 @@ class DataBus:
 
         if not data:
             print(f"No data in topic {topic_name}")
+
+        # data = None
         # data = self.data.get(topic_name)
         # if not data:
         #     print(f"No data in topic {topic_name}")
