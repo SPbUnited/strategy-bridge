@@ -3,6 +3,7 @@ import time
 import typing
 
 import attr
+import zmq.devices
 
 from strategy_bridge.bus import Record, DataBus
 from .data_bus import DB_READ_PREFFIX_XPUB, DB_WRITE_PREFFIX_XSUB
@@ -30,29 +31,10 @@ class DataWriter:
 
         self.s_writer = self.context.socket(zmq.PUB)
 
-        # s_xsub = self.context.socket(zmq.XSUB)
-        # s_xsub.bind(read_proxy_name_xsub)
-        # s_xpub = self.context.socket(zmq.XPUB)
-        # s_xpub.bind(write_proxy_name_xpub)
-        # threading.Thread(
-        #     target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
-        #     args=(s_xsub, s_xpub),
-        # ).start()
-
-        try:
-            s_xsub = self.context.socket(zmq.XSUB)
-            s_xsub.bind(read_proxy_name_xsub)
-            s_xpub = self.context.socket(zmq.XPUB)
-            s_xpub.bind(write_proxy_name_xpub)
-            threading.Thread(
-                target=lambda xsub, xpub: zmq.proxy(xsub, xpub),
-                args=(s_xsub, s_xpub),
-            ).start()
-        except zmq.ZMQError as e:
-            if e.errno == zmq.EADDRINUSE:
-                print("Proxy already running")
-            else:
-                raise e
+        prx = zmq.devices.ThreadProxy(zmq.XSUB, zmq.XPUB)
+        prx.bind_in(read_proxy_name_xsub)
+        prx.bind_out(write_proxy_name_xpub)
+        prx.start()
 
         self.s_writer.connect(read_proxy_name_xsub)
 
