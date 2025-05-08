@@ -45,10 +45,21 @@ class DataReader:
         return records
 
     def read_last(self) -> typing.Optional[Record]:
-        try:
-            return self.read_new()[-1]
-        except IndexError:
-            return None
+        record = None
+        for _ in range(10):
+            try:
+                record = self.s_reader.recv_pyobj(flags=zmq.NOBLOCK)
+            except zmq.ZMQError as e:
+                if e.errno == zmq.EAGAIN:
+                    break
+                else:
+                    raise e
+        return record
+        # try:
+        #     return self.read_new()[-1]
+        # except IndexError:
+        #     return None
+
         # record = self.data_bus.read_top(self.read_topic_name, 1)
         # if record:
         #     return record[0]
