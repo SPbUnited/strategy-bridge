@@ -7,9 +7,9 @@ import time
 import typing
 
 from strategy_bridge.bus import Record
-from strategy_bridge.common import config
+from strategy_bridge import config
 if typing.TYPE_CHECKING:
-    from strategy_bridge.processors import BaseProcessor
+    from strategy_bridge.processors.base_processor import BaseProcessor
 
 
 logger = logging.getLogger(config.DEBUGGER_LOGGER_NAME)

@@ -5,9 +5,9 @@ import websocket
 from websocket import WebSocketApp
 
 from strategy_bridge.bus import DataWriter, DataBus
-from strategy_bridge.common import config
-from strategy_bridge.processors import BaseProcessor
-from strategy_bridge.utils.debugger import debugger
+from strategy_bridge import config
+from strategy_bridge.processors.base_processor import BaseProcessor
+from strategy_bridge.debugger import debugger
 
 
 @attr.s(auto_attribs=True)

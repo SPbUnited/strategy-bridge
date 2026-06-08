@@ -13,24 +13,11 @@ def get_project_root() -> Path:
 
 PROJECT_ROOT = get_project_root()
 
-VISION_DETECTIONS_SUBSCRIBE_PORT = 4242
-REFEREE_COMMANDS_SUBSCRIBE_PORT = 4243
-COMMANDS_PUBLISH_PORT = 5667
-
-VISION_DETECTIONS_TOPIC = "vision-detections"
-REFEREE_COMMANDS_TOPIC = "referee-commands"
-ROBOT_COMMANDS_TOPIC = "robot-commands"
-BOX_FEEDBACK_TOPIC = "box-feedback"
-
 LOG_FILE_NAME = "strategy-bridge.log"
-CONFIG_FILE_NAME = "bridge.yml"
 DEBUGGER_LOGGER_NAME = "debugger"
 DEBUGGER_LOG_FILE_NAME = "debugger.log"
 
 LOG_PATH = os.path.join(PROJECT_ROOT, "logs")
-DEBUG_PATH = os.path.join(PROJECT_ROOT, "debug")
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "conf")
-MATLAB_SCRIPTS_PATH = os.path.join(PROJECT_ROOT, "..", "MLscripts_func_main")
 
 
 def init_logging(log_dir=LOG_PATH, log_file_name=LOG_FILE_NAME, debugger_log_file_name=DEBUGGER_LOG_FILE_NAME):
