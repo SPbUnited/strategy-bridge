@@ -1,5 +1,6 @@
 import logging
 from multiprocessing import Process
+from multiprocessing.connection import wait
 
 from multiprocessing.managers import BaseManager
 
@@ -30,10 +31,30 @@ class Runner:
             for process in processes:
                 process.start()
             try:
-                for process in processes:
-                    process.join()
+                self.wait_for_processes(processes)
             except KeyboardInterrupt:
                 self.logger.warning("The application was interrupted")
+            finally:
+                self.stop_processes(processes)
+
+    def wait_for_processes(self, processes: typing.List[Process]) -> None:
+        remaining = list(processes)
+        while remaining:
+            for sentinel in wait([process.sentinel for process in remaining]):
+                finished = next(process for process in remaining if process.sentinel == sentinel)
+                remaining.remove(finished)
+                if finished.exitcode != 0:
+                    self.logger.error(
+                        f"Process {finished.name} exited with code {finished.exitcode}, stopping the rest"
+                    )
+                    return
+
+    def stop_processes(self, processes: typing.List[Process]) -> None:
+        for process in processes:
+            if process.is_alive():
+                process.terminate()
+        for process in processes:
+            process.join()
 
     def run_processor(self, processor: BaseProcessor, data_bus: DataBus) -> None:
         processor.initialize(data_bus)
